@@ -1,0 +1,79 @@
+import org.snakeskin.compiler.units.GenerateUnitsClasses
+
+plugins {
+    id 'java-library'
+    id 'maven'
+    id 'maven-publish'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.20'
+    id "com.palantir.git-version" version "0.10.0"
+    id "com.jfrog.bintray" version "1.8.4"
+}
+
+group 'org.snakeskin'
+version gitVersion()
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+jar {
+    destinationDir = file("$rootDir/out/libs")
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+sourceSets {
+    main.kotlin.srcDirs += 'src/main/generated'
+}
+
+task genUnitsClasses(type: GenerateUnitsClasses)
+
+compileKotlin.dependsOn genUnitsClasses
+
+publishing {
+    publications {
+        Units(MavenPublication) {
+            from components.java
+            groupId 'org.snakeskin'
+            artifactId 'SnakeSkin-Units'
+            artifact sourcesJar
+            version this.version
+        }
+    }
+}
+
+bintray {
+    user = project.hasProperty('user') ? project.property('user') : System.getenv("BINTRAY_USER") != null ? System.getenv("BINTRAY_USER") : ""
+    key = project.hasProperty('key') ? project.property('key'): System.getenv("BINTRAY_KEY") != null ? System.getenv("BINTRAY_KEY") : ""
+    publications = ['Units']
+    pkg {
+        repo = "SnakeSkin"
+        name = "SnakeSkin-Units"
+        userOrg = "team401"
+        licenses = ["GPL-3.0"]
+        vcsUrl = "https://github.com/team401/snakeskin-units"
+        version {
+            name = this.version
+        }
+    }
+}
+
+wrapper {
+    gradleVersion = '5.1.1'
+}
