@@ -4,6 +4,8 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.io.File
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * @author Cameron Earle
@@ -131,6 +133,7 @@ open class GenerateUnitsClasses: DefaultTask() {
 
     @TaskAction
     fun run() {
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(Watchdog, 0L, 1L, TimeUnit.MINUTES)
         preClean()
         registerUnits()
         assembleUnits(dir)
