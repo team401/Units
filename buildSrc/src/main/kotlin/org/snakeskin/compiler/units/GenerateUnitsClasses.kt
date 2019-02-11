@@ -133,7 +133,6 @@ open class GenerateUnitsClasses: DefaultTask() {
 
     @TaskAction
     fun run() {
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(Watchdog, 0L, 1L, TimeUnit.MINUTES)
         preClean()
         registerUnits()
         assembleUnits(dir)
