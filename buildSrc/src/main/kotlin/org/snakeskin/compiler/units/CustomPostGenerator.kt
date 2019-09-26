@@ -1,6 +1,7 @@
 package org.snakeskin.compiler.units
 
 import com.squareup.kotlinpoet.*
+import org.snakeskin.compiler.units.UnitClassGenerator.inlineMaybe
 
 /**
  * @author Cameron Earle
@@ -47,8 +48,7 @@ object CustomPostGenerator {
                     val unitClassName = getMeasureClassName(unit)
                     type.addFunction(
                             FunSpec.builder("plus")
-                                    .addModifiers(KModifier.INLINE, KModifier.OPERATOR)
-                                    .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
+                                    .inlineMaybe()
                                     .addParameter("that", ClassName(unitPackageName, unitClassName))
                                     .returns(ClassName(unitPackageName, unitClassName))
                                     .addStatement("return $unitClassName(this.value + that.value)")
@@ -56,8 +56,7 @@ object CustomPostGenerator {
                     )
                     type.addFunction(
                             FunSpec.builder("minus")
-                                    .addModifiers(KModifier.INLINE, KModifier.OPERATOR)
-                                    .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
+                                    .inlineMaybe()
                                     .addParameter("that", ClassName(unitPackageName, unitClassName))
                                     .returns(ClassName(unitPackageName, unitClassName))
                                     .addStatement("return $unitClassName(this.value - that.value)")
@@ -65,8 +64,7 @@ object CustomPostGenerator {
                     )
                     type.addFunction(
                             FunSpec.builder("times")
-                                    .addModifiers(KModifier.INLINE, KModifier.OPERATOR)
-                                    .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
+                                    .inlineMaybe()
                                     .addParameter("that", ClassName(unitPackageName, unitClassName))
                                     .returns(ClassName(unitPackageName, unitClassName))
                                     .addStatement("return $unitClassName(this.value * that.value)")
@@ -74,8 +72,7 @@ object CustomPostGenerator {
                     )
                     type.addFunction(
                             FunSpec.builder("div")
-                                    .addModifiers(KModifier.INLINE, KModifier.OPERATOR)
-                                    .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
+                                    .inlineMaybe()
                                     .addParameter("that", ClassName(unitPackageName, unitClassName))
                                     .returns(ClassName(unitPackageName, unitClassName))
                                     .addStatement("return $unitClassName(this.value / that.value)")
@@ -84,8 +81,8 @@ object CustomPostGenerator {
 
                     type.addFunction(
                             FunSpec.builder("compareTo")
-                                    .addModifiers(KModifier.INLINE, KModifier.OPERATOR)
-                                    .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").addMember("%S", "CascadeIf").build())
+                                    .inlineMaybe()
+                                    .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "CascadeIf").build())
                                     .addParameter("that", ClassName(unitPackageName, unitClassName))
                                     .returns(Int::class)
                                     .addStatement("return if (this.value > that.value) 1 else if (this.value < that.value) -1 else 0")
@@ -95,103 +92,163 @@ object CustomPostGenerator {
             }
         }
 
-        //Generate angular -> linear
+        //Generate angular to linear conversions
+
+        //Generate angular -> linear distance
         //Convert "this" to radians, keep linear
         //Return linear unit
         if (currentElement.group == "distance.angular") {
-            val linearGroup = getGroup(otherRemoteElements, "distance.linear")
-            val linearGroupPackage = getPackage(linearGroup.first())
-            linearGroup.forEach {
-                linearElement ->
-                val linearElementClass = getMeasureClassName(linearElement)
+            val radiusMeasureGroup = getGroup(otherRemoteElements, "distance.linear") //Group of possible units for the input radius
+            val radiusMeasureGroupPackage = getPackage(radiusMeasureGroup.first()) //The package that contains the radius types
+            radiusMeasureGroup.forEach {
+                radiusUnit ->
+                val radiusUnitClass = getMeasureClassName(radiusUnit)
                 type.addFunction(
                         FunSpec.builder("toLinearDistance")
-                                .addModifiers(KModifier.INLINE)
-                                .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
-                                .addParameter("radius", ClassName(linearGroupPackage, linearElementClass))
-                                .returns(ClassName(linearGroupPackage, linearElementClass))
-                                .addStatement("return $linearElementClass(this.toRadians().value * radius.value)")
-                                .build()
-                )
-            }
-        }
-
-        //Generate linear -> angular
-        //Convert the radius to this unit
-        //Return radians
-        if (currentElement.group == "distance.linear") {
-            val linearGroupPackage = getPackage(otherLocalElements.first())
-            val angularGroup = getGroup(otherRemoteElements, "distance.angular")
-            val angularGroupPackage = getPackage(angularGroup.first())
-            val angularElementClass = "AngularDistanceMeasureRadians"
-            val conversionToThis = getConversionToFunction(currentElement)
-            otherLocalElements.forEach {
-                linearElement ->
-                val linearElementClass = getMeasureClassName(linearElement)
-                type.addFunction(
-                        FunSpec.builder("toAngularDistance")
-                                .addModifiers(KModifier.INLINE)
-                                .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
-                                .addParameter("radius", ClassName(linearGroupPackage, linearElementClass))
-                                .returns(ClassName(angularGroupPackage, angularElementClass))
-                                .addStatement("return $angularElementClass(this.value / radius.$conversionToThis().value)")
+                                .inlineMaybe()
+                                .addParameter("radius", ClassName(radiusMeasureGroupPackage, radiusUnitClass))
+                                .returns(ClassName(radiusMeasureGroupPackage, radiusUnitClass))
+                                .addStatement("return $radiusUnitClass(this.toRadians().value * radius.value)")
                                 .build()
                 )
             }
         }
 
         //Generate angular -> linear velocity
-        //Convert "this" to radians per linear time unit, keep linear
+        //Convert "this" to radians per this time unit, keep linear
         //Return linear unit per time unit
         if (currentElement.group == "velocity.angular") {
-            val linearGroup = getGroup(otherRemoteElements, "distance.linear")
-            val linearDerivativeGroup = getGroup(otherRemoteElements, "velocity.linear")
-            val linearGroupPackage = getPackage(linearGroup.first())
-            val linearDerivativeGroupPackage = getPackage(linearDerivativeGroup.first())
-            linearGroup.forEach {
-                linearElement ->
-                val linearElementClass = getMeasureClassName(linearElement)
-                val linearDerivativeElement = linearDerivativeGroup.first { it.components[1].name == currentElement.components[1].name && it.components[0].name == linearElement.components[0].name}
-                val linearDerivativeElementClass = getMeasureClassName(linearDerivativeElement)
+            val radiusMeasureGroup = getGroup(otherRemoteElements, "distance.linear") //Group of possible units for the input radius
+            val linearVelocityGroup = getGroup(otherRemoteElements, "velocity.linear") //Group of possible linear velocity types
+            val radiusMeasureGroupPackage = getPackage(radiusMeasureGroup.first()) //The package that contains the radius types
+            val linearVelocityGroupPackage = getPackage(linearVelocityGroup.first()) //The package that contains the linear velocity types
+
+            val angularMeasureTimeComponentName = currentElement.components[1].name
+            radiusMeasureGroup.forEach { //Generate a conversion for each type of input radius
+                radiusUnit ->
+                val radiusUnitClass = getMeasureClassName(radiusUnit) //Get the class name of this radius unit
+                //Get the linear velocity unit whose time component matches ours, and whose distance component matches the radius unit
+                val linearVelocityUnit = linearVelocityGroup.first {
+                    it.components[1].name == angularMeasureTimeComponentName
+                            && it.components[0].name == radiusUnit.components[0].name
+                }
+                val linearVelocityUnitClass = getMeasureClassName(linearVelocityUnit)
                 type.addFunction(
                         FunSpec.builder("toLinearVelocity")
-                                .addModifiers(KModifier.INLINE)
-                                .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
-                                .addParameter("radius", ClassName(linearGroupPackage, linearElementClass))
-                                .returns(ClassName(linearDerivativeGroupPackage, linearDerivativeElementClass))
-                                .addStatement("return $linearDerivativeElementClass(this.toRadiansPer${linearDerivativeElement.components[1].name}().value * radius.value)")
+                                .inlineMaybe()
+                                .addParameter("radius", ClassName(radiusMeasureGroupPackage, radiusUnitClass))
+                                .returns(ClassName(linearVelocityGroupPackage, linearVelocityUnitClass))
+                                .addStatement("return $linearVelocityUnitClass(this.toRadiansPer$angularMeasureTimeComponentName().value * radius.value)")
                                 .build()
                 )
             }
         }
 
-        //Generate linear -> angular velocity
-        //Convert the radius to this unit's first component's unit
-        //Return radians per this unit's second component's unit (angular velocity)
-        if (currentElement.group == "velocity.linear") {
+        //Generate angular -> linear acceleration
+        //Convert "this" to radians per this time unit 1 per this time 2 unit, keep linear
+        //Return linear unit per time unit 1 per time unit 2
+        if (currentElement.group == "acceleration.angular") {
+            val radiusMeasureGroup = getGroup(otherRemoteElements, "distance.linear") //Group of possible units for the input radius
+            val linearAccelerationGroup = getGroup(otherRemoteElements, "acceleration.linear")
+            val radiusMeasureGroupPackage = getPackage(radiusMeasureGroup.first())
+            val linearAccelerationGroupPackage = getPackage(linearAccelerationGroup.first())
+
+            val angularMeasureTimeComponent1Name = currentElement.components[1].name
+            val angularMeasureTimeComponent2Name = currentElement.components[2].name
+            radiusMeasureGroup.forEach { //Generate a conversion for each type of input radius
+                radiusUnit ->
+                val radiusUnitClass = getMeasureClassName(radiusUnit) //Get the class name of this radius unit
+                //Get the linear acceleration unit whose time components match ours, and whose distance component matches the radius unit
+                val linearAccelerationUnit = linearAccelerationGroup.first {
+                    it.components[1].name == angularMeasureTimeComponent1Name
+                            && it.components[2].name == angularMeasureTimeComponent2Name
+                            && it.components[0].name == radiusUnit.components[0].name
+                }
+                val linearAccelerationUnitClass = getMeasureClassName(linearAccelerationUnit)
+                type.addFunction(
+                    FunSpec.builder("toLinearAcceleration")
+                        .inlineMaybe()
+                        .addParameter("radius", ClassName(radiusMeasureGroupPackage, radiusUnitClass))
+                        .returns(ClassName(linearAccelerationGroupPackage, linearAccelerationUnitClass))
+                        .addStatement("return $linearAccelerationUnitClass(this.toRadiansPer${angularMeasureTimeComponent1Name}Per$angularMeasureTimeComponent2Name().value * radius.value)")
+                        .build()
+                )
+            }
+        }
+
+        //Generate linear to angular conversions
+
+        //Generate linear -> angular distance
+        //Convert this to the radius unit
+        //Return radians
+        if (currentElement.group == "distance.linear") {
+            val radiusGroupPackage = getPackage(otherLocalElements.first())
             val angularGroup = getGroup(otherRemoteElements, "distance.angular")
-            val angularDerivativeGroup = getGroup(otherRemoteElements, "velocity.angular")
             val angularGroupPackage = getPackage(angularGroup.first())
-            val angularDerivativeGroupPackage = getPackage(angularDerivativeGroup.first())
-            val angularDerivativeElementClassBase = "AngularVelocityMeasureRadiansPer" //append on second component from this unit
-            val angularDerivativeElementClass = angularDerivativeElementClassBase + currentElement.components[1].name
+            val angularElementClass = "AngularDistanceMeasureRadians"
+            otherLocalElements.forEach { //Other local elements == radius elements
+                    radiusUnit ->
+                val radiusUnitClass = getMeasureClassName(radiusUnit)
+                type.addFunction(
+                    FunSpec.builder("toAngularDistance")
+                        .inlineMaybe()
+                        .addParameter("radius", ClassName(radiusGroupPackage, radiusUnitClass))
+                        .returns(ClassName(angularGroupPackage, angularElementClass))
+                        .addStatement("return $angularElementClass(this.to${radiusUnit.name}().value / radius.value)")
+                        .build()
+                )
+            }
+        }
 
-            val linearGroup = getGroup(otherRemoteElements, "distance.linear")
-            val linearGroupPackage = getPackage(linearGroup.first())
-            val currentLinearIntegral = getUnitFromFirstComponent(linearGroup, currentElement)
+        //Generate linear -> angular velocity
+        //Convert this to the radius unit per this time unit
+        //Return radians per this unit's time component
+        if (currentElement.group == "velocity.linear") {
+            val radiusMeasureGroup = getGroup(otherRemoteElements, "distance.linear") //Group of possible units for the input radius
+            val angularVelocityGroup = getGroup(otherRemoteElements, "velocity.angular") //Group of possible angular velocities
+            val radiusMeasureGroupPackage = getPackage(radiusMeasureGroup.first())
+            val angularVelocityGroupPackage = getPackage(angularVelocityGroup.first())
 
-            linearGroup.forEach {
-                linearElement ->
-                val linearElementClass = getMeasureClassName(linearElement)
-                val conversionToThis = getConversionToFunction(currentLinearIntegral)
+            val linearMeasureTimeComponentName = currentElement.components[1].name
+            val angularVelocityUnitClass = "AngularVelocityMeasureRadiansPer$linearMeasureTimeComponentName"
+
+            radiusMeasureGroup.forEach {
+                radiusUnit ->
+                val radiusUnitClass = getMeasureClassName(radiusUnit)
                 type.addFunction(
                         FunSpec.builder("toAngularVelocity")
-                                .addModifiers(KModifier.INLINE)
-                                .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
-                                .addParameter("radius", ClassName(linearGroupPackage, linearElementClass))
-                                .returns(ClassName(angularDerivativeGroupPackage, angularDerivativeElementClass))
-                                .addStatement("return $angularDerivativeElementClass(this.value / radius.$conversionToThis().value)")
+                                .inlineMaybe()
+                                .addParameter("radius", ClassName(radiusMeasureGroupPackage, radiusUnitClass))
+                                .returns(ClassName(angularVelocityGroupPackage, angularVelocityUnitClass))
+                                .addStatement("return $angularVelocityUnitClass(this.to${radiusUnit.name}Per$linearMeasureTimeComponentName().value / radius.value)")
                                 .build()
+                )
+            }
+        }
+
+        //Generate linear -> angular acceleration
+        //Convert this to the radius unit per this time unit 1 per this time unit 2
+        //Return radians per this unit's time component 1 per this unit's time component 2
+        if (currentElement.group == "acceleration.linear") {
+            val radiusMeasureGroup = getGroup(otherRemoteElements, "distance.linear") //Group of possible units for the input radius
+            val angularAccelerationGroup = getGroup(otherRemoteElements, "acceleration.angular") //Group of possible angular velocities
+            val radiusMeasureGroupPackage = getPackage(radiusMeasureGroup.first())
+            val angularAccelerationGroupPackage = getPackage(angularAccelerationGroup.first())
+
+            val linearMeasureTimeComponent1Name = currentElement.components[1].name
+            val linearMeasureTimeComponent2Name = currentElement.components[2].name
+            val angularAccelerationUnitClass = "AngularAccelerationMeasureRadiansPer${linearMeasureTimeComponent1Name}Per$linearMeasureTimeComponent2Name"
+
+            radiusMeasureGroup.forEach {
+                    radiusUnit ->
+                val radiusUnitClass = getMeasureClassName(radiusUnit)
+                type.addFunction(
+                    FunSpec.builder("toAngularAcceleration")
+                        .inlineMaybe()
+                        .addParameter("radius", ClassName(radiusMeasureGroupPackage, radiusUnitClass))
+                        .returns(ClassName(angularAccelerationGroupPackage, angularAccelerationUnitClass))
+                        .addStatement("return $angularAccelerationUnitClass(this.to${radiusUnit.name}Per${linearMeasureTimeComponent1Name}Per${linearMeasureTimeComponent2Name}().value / radius.value)")
+                        .build()
                 )
             }
         }

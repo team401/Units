@@ -11,6 +11,17 @@ import java.util.*
  *
  */
 object UnitClassGenerator {
+    const val INLINE_METHODS = false
+
+    fun FunSpec.Builder.inlineMaybe(): FunSpec.Builder {
+        if (INLINE_METHODS) {
+            addModifiers(KModifier.INLINE, KModifier.OPERATOR)
+            addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
+        }
+
+        return this
+    }
+
     data class FactorKey(val functionName: String, val returnTypeName: String)
 
     fun generateClass(writeTo: File, unitDefinition: UnitDefinition, group: List<UnitDefinition>, remote: List<UnitDefinition>) {
@@ -29,8 +40,6 @@ object UnitClassGenerator {
             val className = groupElement.group.split(".").reversed().joinToString("", transform = { it.capitalize() }) + "Measure${groupElement.name}"
 
             factors[FactorKey(conversionName, className)] = upperFactor
-
-            //println("${unitDefinition.name}:   $conversionName = $upperFactor")
         }
 
         val thisConversionName = "to${unitDefinition.name}"
@@ -59,8 +68,7 @@ object UnitClassGenerator {
             //Add unitless arithmetic (this = unit, that = unitless)
             typeBuilder.addFunction(
                     FunSpec.builder("plus")
-                            .addModifiers(KModifier.INLINE, KModifier.OPERATOR)
-                            .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
+                            .inlineMaybe()
                             .addParameter("that", ClassName("org.snakeskin.measure", "MeasureUnitless"))
                             .returns(ClassName(packageName, finalClassName))
                             .addStatement("return $finalClassName(this.value + that.value)")
@@ -68,8 +76,7 @@ object UnitClassGenerator {
             )
             typeBuilder.addFunction(
                     FunSpec.builder("minus")
-                            .addModifiers(KModifier.INLINE, KModifier.OPERATOR)
-                            .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
+                            .inlineMaybe()
                             .addParameter("that", ClassName("org.snakeskin.measure", "MeasureUnitless"))
                             .returns(ClassName(packageName, finalClassName))
                             .addStatement("return $finalClassName(this.value - that.value)")
@@ -77,8 +84,7 @@ object UnitClassGenerator {
             )
             typeBuilder.addFunction(
                     FunSpec.builder("times")
-                            .addModifiers(KModifier.INLINE, KModifier.OPERATOR)
-                            .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
+                            .inlineMaybe()
                             .addParameter("that", ClassName("org.snakeskin.measure", "MeasureUnitless"))
                             .returns(ClassName(packageName, finalClassName))
                             .addStatement("return $finalClassName(this.value * that.value)")
@@ -86,8 +92,7 @@ object UnitClassGenerator {
             )
             typeBuilder.addFunction(
                     FunSpec.builder("div")
-                            .addModifiers(KModifier.INLINE, KModifier.OPERATOR)
-                            .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
+                            .inlineMaybe()
                             .addParameter("that", ClassName("org.snakeskin.measure", "MeasureUnitless"))
                             .returns(ClassName(packageName, finalClassName))
                             .addStatement("return $finalClassName(this.value / that.value)")
@@ -97,73 +102,67 @@ object UnitClassGenerator {
             //Add unitless comparison functions (this = unit, that = unitless)
             typeBuilder.addFunction(
                     FunSpec.builder("compareTo")
-                            .addModifiers(KModifier.INLINE, KModifier.OPERATOR)
-                            .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").addMember("%S", "CascadeIf").build())
+                            .inlineMaybe()
+                            .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "CascadeIf").build())
                             .addParameter("that", ClassName("org.snakeskin.measure", "MeasureUnitless"))
                             .returns(Int::class)
                             .addStatement("return if (this.value > that.value) 1 else if (this.value < that.value) -1 else 0")
                             .build()
             )
+
+            //Add same unit arithmetic
+            typeBuilder.addFunction(
+                FunSpec.builder("plus")
+                    .inlineMaybe()
+                    .addParameter("that", ClassName(packageName, finalClassName))
+                    .returns(ClassName(packageName, finalClassName))
+                    .addStatement("return $finalClassName(this.value + that.value)")
+                    .build()
+            )
+            typeBuilder.addFunction(
+                FunSpec.builder("minus")
+                    .inlineMaybe()
+                    .addParameter("that", ClassName(packageName, finalClassName))
+                    .returns(ClassName(packageName, finalClassName))
+                    .addStatement("return $finalClassName(this.value - that.value)")
+                    .build()
+            )
+            typeBuilder.addFunction(
+                FunSpec.builder("times")
+                    .inlineMaybe()
+                    .addParameter("that", ClassName(packageName, finalClassName))
+                    .returns(ClassName(packageName, finalClassName))
+                    .addStatement("return $finalClassName(this.value * that.value)")
+                    .build()
+            )
+            typeBuilder.addFunction(
+                FunSpec.builder("div")
+                    .inlineMaybe()
+                    .addParameter("that", ClassName(packageName, finalClassName))
+                    .returns(ClassName(packageName, finalClassName))
+                    .addStatement("return $finalClassName(this.value / that.value)")
+                    .build()
+            )
+
+            //Add same unit comparison
+            typeBuilder.addFunction(
+                FunSpec.builder("compareTo")
+                    .inlineMaybe()
+                    .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "CascadeIf").build())
+                    .addParameter("that", ClassName(packageName, finalClassName))
+                    .returns(Int::class)
+                    .addStatement("return if (this.value > that.value) 1 else if (this.value < that.value) -1 else 0")
+                    .build()
+            )
         }
 
-        factors.forEach {
-            key, factor ->
+        factors.forEach { (key, factor) ->
             //Add direct conversion functions
             typeBuilder.addFunction(
                     FunSpec.builder(key.functionName)
-                            .addModifiers(KModifier.INLINE)
-                            .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
+                            .inlineMaybe()
                             .returns(ClassName(packageName, key.returnTypeName))
                             .addStatement("return ${key.returnTypeName}(value * $factor)")
-                            .build()
-            )
-
-            //Add arithmetic functions
-            typeBuilder.addFunction(
-                    FunSpec.builder("plus")
-                            .addModifiers(KModifier.INLINE, KModifier.OPERATOR)
-                            .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
-                            .addParameter("that", ClassName(packageName, key.returnTypeName))
-                            .returns(ClassName(packageName, finalClassName))
-                            .addStatement("return $finalClassName(this.value + that.$thisConversionName().value)")
-                            .build()
-            )
-            typeBuilder.addFunction(
-                    FunSpec.builder("minus")
-                            .addModifiers(KModifier.INLINE, KModifier.OPERATOR)
-                            .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
-                            .addParameter("that", ClassName(packageName, key.returnTypeName))
-                            .returns(ClassName(packageName, finalClassName))
-                            .addStatement("return $finalClassName(this.value - that.$thisConversionName().value)")
-                            .build()
-            )
-            typeBuilder.addFunction(
-                    FunSpec.builder("times")
-                            .addModifiers(KModifier.INLINE, KModifier.OPERATOR)
-                            .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
-                            .addParameter("that", ClassName(packageName, key.returnTypeName))
-                            .returns(ClassName(packageName, finalClassName))
-                            .addStatement("return $finalClassName(this.value * that.$thisConversionName().value)")
-                            .build()
-            )
-            typeBuilder.addFunction(
-                    FunSpec.builder("div")
-                            .addModifiers(KModifier.INLINE, KModifier.OPERATOR)
-                            .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
-                            .addParameter("that", ClassName(packageName, key.returnTypeName))
-                            .returns(ClassName(packageName, finalClassName))
-                            .addStatement("return $finalClassName(this.value / that.$thisConversionName().value)")
-                            .build()
-            )
-
-            //Add comparison functions
-            typeBuilder.addFunction(
-                    FunSpec.builder("compareTo")
-                            .addModifiers(KModifier.INLINE, KModifier.OPERATOR)
-                            .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").addMember("%S", "CascadeIf").build())
-                            .addParameter("that", ClassName(packageName, key.returnTypeName))
-                            .returns(Int::class)
-                            .addStatement("return if (this.value > that.$thisConversionName().value) 1 else if (this.value < that.$thisConversionName().value) -1 else 0")
                             .build()
             )
         }
@@ -195,12 +194,24 @@ object UnitClassGenerator {
                 element ->
                 val packageName = "org.snakeskin.measure.${element.group}".removeSuffix(".")
                 val finalClassName = element.group.split(".").reversed().joinToString("", transform = { it.capitalize() }) + "Measure${element.name}"
+                //Full name DSL
                 fileBuilder.addProperty(
                         PropertySpec.builder(element.name, ClassName(packageName, finalClassName))
                                 .getter(
                                         FunSpec.getterBuilder()
                                                 .addStatement("return $finalClassName(this)")
                                                 .build()
+                                )
+                                .receiver(Double::class)
+                                .build()
+                )
+                //Underscore abbreviation DSL
+                fileBuilder.addProperty(
+                    PropertySpec.builder('_' + element.abbreviation.replace("/", "_per_"), ClassName(packageName, finalClassName))
+                                .getter(
+                                    FunSpec.getterBuilder()
+                                        .addStatement("return $finalClassName(this)")
+                                        .build()
                                 )
                                 .receiver(Double::class)
                                 .build()
