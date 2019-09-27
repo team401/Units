@@ -13,10 +13,22 @@ import java.util.*
 object UnitClassGenerator {
     const val INLINE_METHODS = false
 
-    fun FunSpec.Builder.inlineMaybe(): FunSpec.Builder {
+    fun FunSpec.Builder.inlineMaybe(operator: Boolean = false, vararg otherSuppress: String): FunSpec.Builder {
+        val annotationSpecBuilder = AnnotationSpec.builder(Suppress::class)
+        otherSuppress.forEach {
+            annotationSpecBuilder.addMember("%S", it)
+        }
+        if (operator) {
+            addModifiers(KModifier.OPERATOR)
+        }
+
         if (INLINE_METHODS) {
-            addModifiers(KModifier.INLINE, KModifier.OPERATOR)
-            addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "NOTHING_TO_INLINE").build())
+            addModifiers(KModifier.INLINE)
+            annotationSpecBuilder.addMember("%S", "NOTHING_TO_INLINE")
+        }
+
+        if (annotationSpecBuilder.members.isNotEmpty()) {
+            addAnnotation(annotationSpecBuilder.build())
         }
 
         return this
@@ -68,7 +80,7 @@ object UnitClassGenerator {
             //Add unitless arithmetic (this = unit, that = unitless)
             typeBuilder.addFunction(
                     FunSpec.builder("plus")
-                            .inlineMaybe()
+                            .inlineMaybe(true)
                             .addParameter("that", ClassName("org.snakeskin.measure", "MeasureUnitless"))
                             .returns(ClassName(packageName, finalClassName))
                             .addStatement("return $finalClassName(this.value + that.value)")
@@ -76,7 +88,7 @@ object UnitClassGenerator {
             )
             typeBuilder.addFunction(
                     FunSpec.builder("minus")
-                            .inlineMaybe()
+                            .inlineMaybe(true)
                             .addParameter("that", ClassName("org.snakeskin.measure", "MeasureUnitless"))
                             .returns(ClassName(packageName, finalClassName))
                             .addStatement("return $finalClassName(this.value - that.value)")
@@ -84,7 +96,7 @@ object UnitClassGenerator {
             )
             typeBuilder.addFunction(
                     FunSpec.builder("times")
-                            .inlineMaybe()
+                            .inlineMaybe(true)
                             .addParameter("that", ClassName("org.snakeskin.measure", "MeasureUnitless"))
                             .returns(ClassName(packageName, finalClassName))
                             .addStatement("return $finalClassName(this.value * that.value)")
@@ -92,7 +104,7 @@ object UnitClassGenerator {
             )
             typeBuilder.addFunction(
                     FunSpec.builder("div")
-                            .inlineMaybe()
+                            .inlineMaybe(true)
                             .addParameter("that", ClassName("org.snakeskin.measure", "MeasureUnitless"))
                             .returns(ClassName(packageName, finalClassName))
                             .addStatement("return $finalClassName(this.value / that.value)")
@@ -102,8 +114,7 @@ object UnitClassGenerator {
             //Add unitless comparison functions (this = unit, that = unitless)
             typeBuilder.addFunction(
                     FunSpec.builder("compareTo")
-                            .inlineMaybe()
-                            .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "CascadeIf").build())
+                            .inlineMaybe(true, "CascadeIf")
                             .addParameter("that", ClassName("org.snakeskin.measure", "MeasureUnitless"))
                             .returns(Int::class)
                             .addStatement("return if (this.value > that.value) 1 else if (this.value < that.value) -1 else 0")
@@ -113,7 +124,7 @@ object UnitClassGenerator {
             //Add same unit arithmetic
             typeBuilder.addFunction(
                 FunSpec.builder("plus")
-                    .inlineMaybe()
+                    .inlineMaybe(true)
                     .addParameter("that", ClassName(packageName, finalClassName))
                     .returns(ClassName(packageName, finalClassName))
                     .addStatement("return $finalClassName(this.value + that.value)")
@@ -121,7 +132,7 @@ object UnitClassGenerator {
             )
             typeBuilder.addFunction(
                 FunSpec.builder("minus")
-                    .inlineMaybe()
+                    .inlineMaybe(true)
                     .addParameter("that", ClassName(packageName, finalClassName))
                     .returns(ClassName(packageName, finalClassName))
                     .addStatement("return $finalClassName(this.value - that.value)")
@@ -129,7 +140,7 @@ object UnitClassGenerator {
             )
             typeBuilder.addFunction(
                 FunSpec.builder("times")
-                    .inlineMaybe()
+                    .inlineMaybe(true)
                     .addParameter("that", ClassName(packageName, finalClassName))
                     .returns(ClassName(packageName, finalClassName))
                     .addStatement("return $finalClassName(this.value * that.value)")
@@ -137,7 +148,7 @@ object UnitClassGenerator {
             )
             typeBuilder.addFunction(
                 FunSpec.builder("div")
-                    .inlineMaybe()
+                    .inlineMaybe(true)
                     .addParameter("that", ClassName(packageName, finalClassName))
                     .returns(ClassName(packageName, finalClassName))
                     .addStatement("return $finalClassName(this.value / that.value)")
@@ -147,8 +158,7 @@ object UnitClassGenerator {
             //Add same unit comparison
             typeBuilder.addFunction(
                 FunSpec.builder("compareTo")
-                    .inlineMaybe()
-                    .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "CascadeIf").build())
+                    .inlineMaybe(true, "CascadeIf")
                     .addParameter("that", ClassName(packageName, finalClassName))
                     .returns(Int::class)
                     .addStatement("return if (this.value > that.value) 1 else if (this.value < that.value) -1 else 0")

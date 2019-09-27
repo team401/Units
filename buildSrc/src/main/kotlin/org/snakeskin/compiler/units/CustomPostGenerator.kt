@@ -48,7 +48,7 @@ object CustomPostGenerator {
                     val unitClassName = getMeasureClassName(unit)
                     type.addFunction(
                             FunSpec.builder("plus")
-                                    .inlineMaybe()
+                                    .inlineMaybe(true)
                                     .addParameter("that", ClassName(unitPackageName, unitClassName))
                                     .returns(ClassName(unitPackageName, unitClassName))
                                     .addStatement("return $unitClassName(this.value + that.value)")
@@ -56,7 +56,7 @@ object CustomPostGenerator {
                     )
                     type.addFunction(
                             FunSpec.builder("minus")
-                                    .inlineMaybe()
+                                    .inlineMaybe(true)
                                     .addParameter("that", ClassName(unitPackageName, unitClassName))
                                     .returns(ClassName(unitPackageName, unitClassName))
                                     .addStatement("return $unitClassName(this.value - that.value)")
@@ -64,7 +64,7 @@ object CustomPostGenerator {
                     )
                     type.addFunction(
                             FunSpec.builder("times")
-                                    .inlineMaybe()
+                                    .inlineMaybe(true)
                                     .addParameter("that", ClassName(unitPackageName, unitClassName))
                                     .returns(ClassName(unitPackageName, unitClassName))
                                     .addStatement("return $unitClassName(this.value * that.value)")
@@ -72,7 +72,7 @@ object CustomPostGenerator {
                     )
                     type.addFunction(
                             FunSpec.builder("div")
-                                    .inlineMaybe()
+                                    .inlineMaybe(true)
                                     .addParameter("that", ClassName(unitPackageName, unitClassName))
                                     .returns(ClassName(unitPackageName, unitClassName))
                                     .addStatement("return $unitClassName(this.value / that.value)")
@@ -81,8 +81,7 @@ object CustomPostGenerator {
 
                     type.addFunction(
                             FunSpec.builder("compareTo")
-                                    .inlineMaybe()
-                                    .addAnnotation(AnnotationSpec.builder(Suppress::class).addMember("%S", "CascadeIf").build())
+                                    .inlineMaybe(true, "CascadeIf")
                                     .addParameter("that", ClassName(unitPackageName, unitClassName))
                                     .returns(Int::class)
                                     .addStatement("return if (this.value > that.value) 1 else if (this.value < that.value) -1 else 0")
