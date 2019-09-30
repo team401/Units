@@ -217,7 +217,7 @@ object UnitClassGenerator {
                 )
                 //Underscore abbreviation DSL
                 fileBuilder.addProperty(
-                    PropertySpec.builder('_' + element.abbreviation.replace("/", "_per_"), ClassName(packageName, finalClassName))
+                    PropertySpec.builder('_' + element.abbreviation.replace("/", "_per_").replace(" ", "_"), ClassName(packageName, finalClassName))
                                 .getter(
                                     FunSpec.getterBuilder()
                                         .addStatement("return $finalClassName(this)")

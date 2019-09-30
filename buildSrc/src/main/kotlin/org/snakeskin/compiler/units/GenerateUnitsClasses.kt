@@ -29,8 +29,9 @@ open class GenerateUnitsClasses: DefaultTask() {
         val radians = UnitComponent(UnitType.ANGULAR_DISTANCE, "Radian", "Radians", "rad", 1.0) //BASE
         val degrees = UnitComponent(UnitType.ANGULAR_DISTANCE, "Degree", "Degrees", "deg", Math.PI / 180.0)
         val revolutions = UnitComponent(UnitType.ANGULAR_DISTANCE, "Revolution", "Revolutions", "rev", 2.0 * Math.PI)
-        val magEncoderTicks = UnitComponent(UnitType.ANGULAR_DISTANCE, "MagEncoderTick", "MagEncoderTicks", "ticks", (2 * Math.PI) / 4096.0)
-        val angularDistance = arrayListOf(radians, degrees, revolutions, magEncoderTicks)
+        val ticks12Bit = UnitComponent(UnitType.ANGULAR_DISTANCE, "Tick12Bit", "Ticks12Bit", "ticks12b", (2 * Math.PI) / 4096.0)
+        val ticks13Bit = UnitComponent(UnitType.ANGULAR_DISTANCE, "Tick13Bit", "Ticks13Bit", "ticks13b", (2 * Math.PI) / 8192.0)
+        val angularDistance = arrayListOf(radians, degrees, revolutions, ticks12Bit, ticks13Bit)
 
         //Time
         val seconds = UnitComponent(UnitType.TIME, "Second", "Seconds", "s", 1.0) //BASE
