@@ -40,6 +40,11 @@ open class GenerateUnitsClasses: DefaultTask() {
         val hours = UnitComponent(UnitType.TIME, "Hour", "Hours", "hr", 3600.0)
         val hundredMs = UnitComponent(UnitType.TIME, "HundredMilliseconds", "HundredMilliseconds", "100 ms", 0.1)
         val time = arrayListOf(seconds, milliseconds, minutes, hours, hundredMs)
+
+        //Mass
+        val kilograms = UnitComponent(UnitType.MASS, "Kilogram", "Kilograms", "kg", 1.0) //BASE
+        val poundmass = UnitComponent(UnitType.MASS, "Pound", "Pounds", "lbmass", 0.45359237)
+        val mass = arrayListOf(kilograms, poundmass)
     }
 
     private val units = arrayListOf<UnitDefinition>()
@@ -86,6 +91,7 @@ open class GenerateUnitsClasses: DefaultTask() {
         addGroup("distance.linear", linearDistance)
         addGroup("distance.angular", angularDistance)
         addGroup("time", time)
+        addGroup("mass", mass)
 
         units.addAll(multiplexPer("velocity.linear", getGroup("distance.linear"), getGroup("time")))
         units.addAll(multiplexPer("velocity.angular", getGroup("distance.angular"), getGroup("time")))
@@ -101,6 +107,7 @@ open class GenerateUnitsClasses: DefaultTask() {
         val linearDistance = getGroup("distance.linear")
         val angularDistance = getGroup("distance.angular")
         val time = getGroup("time")
+        val mass = getGroup("mass")
         val linearVelocity = getGroup("velocity.linear")
         val angularVelocity = getGroup("velocity.angular")
         val linearAcceleration = getGroup("acceleration.linear")
@@ -111,6 +118,7 @@ open class GenerateUnitsClasses: DefaultTask() {
                 linearDistance,
                 angularDistance,
                 time,
+                mass,
                 linearVelocity,
                 angularVelocity,
                 linearAcceleration,
@@ -122,6 +130,7 @@ open class GenerateUnitsClasses: DefaultTask() {
                 linearDistance,
                 angularDistance,
                 time,
+                mass,
                 linearVelocity,
                 angularVelocity,
                 linearAcceleration,

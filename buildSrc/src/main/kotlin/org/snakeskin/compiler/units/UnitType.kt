@@ -10,5 +10,6 @@ enum class UnitType {
     ANGULAR_DISTANCE,
     LINEAR_DISTANCE,
     TIME,
+    MASS,
     UNITLESS
 }
