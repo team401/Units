@@ -32,11 +32,6 @@ jar {
     destinationDirectory = file("$rootDir/out/libs")
 }
 
-task sourcesJar(type: Jar) {
-    from sourceSets.main.allSource
-    classifier = 'sources'
-}
-
 sourceSets {
     main.kotlin.srcDirs += 'src/main/generated'
 }
@@ -51,7 +46,6 @@ publishing {
             from components.java
             groupId 'org.snakeskin'
             artifactId 'SnakeSkin-Units'
-            artifact sourcesJar
             version this.version
         }
     }
