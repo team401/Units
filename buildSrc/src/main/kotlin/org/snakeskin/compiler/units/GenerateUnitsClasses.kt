@@ -22,8 +22,7 @@ open class GenerateUnitsClasses: DefaultTask() {
         val meters = UnitComponent(UnitType.LINEAR_DISTANCE, "Meter", "Meters", "m", 39.3701)
         val centimeters = UnitComponent(UnitType.LINEAR_DISTANCE, "Centimeter", "Centimeters", "cm", 0.393701)
         val feet = UnitComponent(UnitType.LINEAR_DISTANCE, "Foot", "Feet", "ft", 12.0)
-        val miles = UnitComponent(UnitType.LINEAR_DISTANCE, "Mile", "Miles", "mi", 63360.0)
-        val linearDistance = arrayListOf(inches, meters, centimeters, feet, miles)
+        val linearDistance = arrayListOf(inches, meters, centimeters, feet)
 
         //Angular distance
         val radians = UnitComponent(UnitType.ANGULAR_DISTANCE, "Radian", "Radians", "rad", 1.0) //BASE
@@ -37,9 +36,8 @@ open class GenerateUnitsClasses: DefaultTask() {
         val seconds = UnitComponent(UnitType.TIME, "Second", "Seconds", "s", 1.0) //BASE
         val milliseconds = UnitComponent(UnitType.TIME, "Millisecond", "Milliseconds", "ms", 0.001)
         val minutes = UnitComponent(UnitType.TIME, "Minute", "Minutes", "min", 60.0)
-        val hours = UnitComponent(UnitType.TIME, "Hour", "Hours", "hr", 3600.0)
         val hundredMs = UnitComponent(UnitType.TIME, "HundredMilliseconds", "HundredMilliseconds", "100 ms", 0.1)
-        val time = arrayListOf(seconds, milliseconds, minutes, hours, hundredMs)
+        val time = arrayListOf(seconds, milliseconds, minutes, hundredMs)
 
         //Mass
         val kilograms = UnitComponent(UnitType.MASS, "Kilogram", "Kilograms", "kg", 1.0) //BASE

@@ -2,7 +2,6 @@ import org.snakeskin.compiler.units.GenerateUnitsClasses
 
 plugins {
     id 'java-library'
-    id 'maven'
     id 'maven-publish'
     id 'org.jetbrains.kotlin.jvm' version '1.3.50'
     id "com.palantir.git-version" version "0.10.0"
@@ -30,7 +29,7 @@ compileTestKotlin {
 }
 
 jar {
-    destinationDir = file("$rootDir/out/libs")
+    destinationDirectory = file("$rootDir/out/libs")
 }
 
 task sourcesJar(type: Jar) {
@@ -75,5 +74,5 @@ bintray {
 }
 
 wrapper {
-    gradleVersion = '5.6.2'
+    gradleVersion = '6.0'
 }
