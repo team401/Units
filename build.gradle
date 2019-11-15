@@ -28,10 +28,6 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-jar {
-    destinationDirectory = file("$rootDir/out/libs")
-}
-
 sourceSets {
     main.kotlin.srcDirs += 'src/main/generated'
 }
@@ -65,6 +61,8 @@ bintray {
             name = this.version
         }
     }
+
+    dryRun = true
 }
 
 wrapper {
