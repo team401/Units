@@ -2,8 +2,6 @@ language: java
 jdk: openjdk11
 before_install:
   - chmod +x gradlew
-after_script:
-  - ./gradlew bintrayUpload
 deploy:
   - provider: script
     script: ./gradlew bintrayUpload
