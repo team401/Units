@@ -167,6 +167,15 @@ object UnitClassGenerator {
                             .addStatement("return if (this.value < that.value) this else that")
                             .build()
             )
+
+            //Add absolute value
+            typeBuilder.addFunction(
+                    FunSpec.builder("abs")
+                            .inlineMaybe()
+                            .returns(ClassName(packageName, finalClassName))
+                            .addStatement("return $finalClassName(kotlin.math.abs(this.value))")
+                            .build()
+            )
         }
 
         factors.forEach { (key, factor) ->
