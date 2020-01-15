@@ -138,22 +138,6 @@ object UnitClassGenerator {
                     .addStatement("return $finalClassName(this.value - that.value)")
                     .build()
             )
-            typeBuilder.addFunction(
-                FunSpec.builder("times")
-                    .inlineMaybe(true)
-                    .addParameter("that", ClassName(packageName, finalClassName))
-                    .returns(ClassName(packageName, finalClassName))
-                    .addStatement("return $finalClassName(this.value * that.value)")
-                    .build()
-            )
-            typeBuilder.addFunction(
-                FunSpec.builder("div")
-                    .inlineMaybe(true)
-                    .addParameter("that", ClassName(packageName, finalClassName))
-                    .returns(ClassName(packageName, finalClassName))
-                    .addStatement("return $finalClassName(this.value / that.value)")
-                    .build()
-            )
 
             //Add same unit comparison
             typeBuilder.addFunction(
@@ -163,6 +147,25 @@ object UnitClassGenerator {
                     .returns(Int::class)
                     .addStatement("return if (this.value > that.value) 1 else if (this.value < that.value) -1 else 0")
                     .build()
+            )
+
+            //Add at least and at most
+            typeBuilder.addFunction(
+                    FunSpec.builder("coerceAtLeast")
+                            .inlineMaybe()
+                            .addParameter("that", ClassName(packageName, finalClassName))
+                            .returns(ClassName(packageName, finalClassName))
+                            .addStatement("return if (this.value > that.value) this else that")
+                            .build()
+            )
+
+            typeBuilder.addFunction(
+                    FunSpec.builder("coerceAtMost")
+                            .inlineMaybe()
+                            .addParameter("that", ClassName(packageName, finalClassName))
+                            .returns(ClassName(packageName, finalClassName))
+                            .addStatement("return if (this.value < that.value) this else that")
+                            .build()
             )
         }
 

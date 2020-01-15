@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 open class GenerateUnitsClasses: DefaultTask() {
     companion object BaseComponents {
         //Unitless
-        val unitless = UnitComponent(UnitType.UNITLESS, "Unitless", "Unitless", "unitless", 1.0)
+        val unitless = UnitComponent(UnitType.UNITLESS, "Unitless", "Unitless", "ul", 1.0)
 
         //Linear distance
         val inches = UnitComponent(UnitType.LINEAR_DISTANCE, "Inch", "Inches", "in", 1.0) //BASE
