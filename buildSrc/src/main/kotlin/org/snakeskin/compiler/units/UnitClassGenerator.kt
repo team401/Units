@@ -72,7 +72,7 @@ object UnitClassGenerator {
                 FunSpec.builder("toString")
                         .addModifiers(KModifier.OVERRIDE)
                         .returns(String::class)
-                        .addStatement("return this.value.toString() + %S + %S", " ", unitDefinition.abbreviation)
+                        .addStatement("return this.value.toString() + %S", " ${unitDefinition.abbreviation}")
                         .build()
         )
 
@@ -139,6 +139,16 @@ object UnitClassGenerator {
                     .build()
             )
 
+            //Division of same units to ratio
+            typeBuilder.addFunction(
+                    FunSpec.builder("div")
+                            .inlineMaybe(true)
+                            .addParameter("that", ClassName(packageName, finalClassName))
+                            .returns(Double::class)
+                            .addStatement("return (this.value / that.value)")
+                            .build()
+            )
+
             //Add same unit comparison
             typeBuilder.addFunction(
                 FunSpec.builder("compareTo")
@@ -168,12 +178,20 @@ object UnitClassGenerator {
                             .build()
             )
 
-            //Add absolute value
+            //Add absolute value and sign
             typeBuilder.addFunction(
                     FunSpec.builder("abs")
                             .inlineMaybe()
                             .returns(ClassName(packageName, finalClassName))
                             .addStatement("return $finalClassName(kotlin.math.abs(this.value))")
+                            .build()
+            )
+
+            typeBuilder.addFunction(
+                    FunSpec.builder("sign")
+                            .inlineMaybe()
+                            .returns(Double::class)
+                            .addStatement("return kotlin.math.sign(this.value)")
                             .build()
             )
         }

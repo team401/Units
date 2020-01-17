@@ -252,7 +252,7 @@ object CustomPostGenerator {
             }
         }
 
-        //Generate linear velocity -> position
+        //Generate linear velocity -> position ( vel * time )
         //Multiply value by time and then strip the time unit off, returning the corresponding position unit
         if (currentElement.group == "velocity.linear") {
             val linearDistanceGroup = getGroup(otherRemoteElements, "distance.linear")
@@ -276,7 +276,35 @@ object CustomPostGenerator {
             )
         }
 
-        //Generate angular velocity -> position
+        //Generate linear velocity -> position ( time * vel )
+        //Multiply value by time and then strip the time unit off, returning the corresponding position unit
+        if (currentElement.group == "time") {
+            val linearDistanceGroup = getGroup(otherRemoteElements, "distance.linear")
+            val linearDistanceGroupPackage = getPackage(linearDistanceGroup.first())
+
+            val linearVelocityGroup = getGroup(otherRemoteElements, "velocity.linear")
+            val linearVelocityGroupPackage = getPackage(linearVelocityGroup.first())
+
+            linearVelocityGroup.forEach {
+                linearVelocityUnit ->
+                val linearVelocityDistanceComponentName = linearVelocityUnit.components[0].pluralName
+                val linearVelocityTimeComponentName = linearVelocityUnit.components[1].pluralName
+                if (linearVelocityTimeComponentName == currentElement.components[0].pluralName) {
+                    val linearDistanceUnitClass = "LinearDistanceMeasure$linearVelocityDistanceComponentName"
+                    val linearVelocityUnitClass = getMeasureClassName(linearVelocityUnit)
+                    type.addFunction(
+                            FunSpec.builder("times")
+                                    .inlineMaybe(true)
+                                    .addParameter("that", ClassName(linearVelocityGroupPackage, linearVelocityUnitClass))
+                                    .returns(ClassName(linearDistanceGroupPackage, linearDistanceUnitClass))
+                                    .addStatement("return $linearDistanceUnitClass(this.value * that.value)")
+                                    .build()
+                    )
+                }
+            }
+        }
+
+        //Generate angular velocity -> position ( vel * time )
         //Multiply value by time and then strip the time unit off, returning the corresponding position unit
         if (currentElement.group == "velocity.angular") {
             val angularDistanceGroup = getGroup(otherRemoteElements, "distance.angular")
@@ -300,7 +328,35 @@ object CustomPostGenerator {
             )
         }
 
-        //Generate linear acceleration -> velocity
+        //Generate angular velocity -> position ( time * vel )
+        //Multiply value by time and then strip the time unit off, returning the corresponding position unit
+        if (currentElement.group == "time") {
+            val angularDistanceGroup = getGroup(otherRemoteElements, "distance.angular")
+            val angularDistanceGroupPackage = getPackage(angularDistanceGroup.first())
+
+            val angularVelocityGroup = getGroup(otherRemoteElements, "velocity.angular")
+            val angularVelocityGroupPackage = getPackage(angularVelocityGroup.first())
+
+            angularVelocityGroup.forEach {
+                angularVelocityUnit ->
+                val angularVelocityDistanceComponentName = angularVelocityUnit.components[0].pluralName
+                val angularVelocityTimeComponentName = angularVelocityUnit.components[1].pluralName
+                if (angularVelocityTimeComponentName == currentElement.components[0].pluralName) {
+                    val angularDistanceUnitClass = "AngularDistanceMeasure$angularVelocityDistanceComponentName"
+                    val angularVelocityUnitClass = getMeasureClassName(angularVelocityUnit)
+                    type.addFunction(
+                            FunSpec.builder("times")
+                                    .inlineMaybe(true)
+                                    .addParameter("that", ClassName(angularVelocityGroupPackage, angularVelocityUnitClass))
+                                    .returns(ClassName(angularDistanceGroupPackage, angularDistanceUnitClass))
+                                    .addStatement("return $angularDistanceUnitClass(this.value * that.value)")
+                                    .build()
+                    )
+                }
+            }
+        }
+
+        //Generate linear acceleration -> velocity ( accel * time )
         //Multiply value by time and then strip the time unit off, returning the corresponding position unit
         if (currentElement.group == "acceleration.linear") {
             val linearVelocityGroup = getGroup(otherRemoteElements, "velocity.linear")
@@ -326,7 +382,37 @@ object CustomPostGenerator {
             )
         }
 
-        //Generate angular acceleration -> velocity
+        //Generate linear acceleration -> velocity ( time * accel )
+        //Multiply value by time and then strip the time unit off, returning the corresponding position unit
+        if (currentElement.group == "time") {
+            val linearVelocityGroup = getGroup(otherRemoteElements, "velocity.linear")
+            val linearVelocityGroupPackage = getPackage(linearVelocityGroup.first())
+
+            val linearAccelerationGroup = getGroup(otherRemoteElements, "acceleration.linear")
+            val linearAccelerationGroupPackage = getPackage(linearAccelerationGroup.first())
+            
+            linearAccelerationGroup.forEach {
+                linearAccelerationUnit ->
+                val linearAccelerationDistanceComponentName = linearAccelerationUnit.components[0].pluralName
+                val linearAccelerationTime1ComponentName = linearAccelerationUnit.components[1].name
+                val linearAccelerationTime2ComponentName = linearAccelerationUnit.components[2].name
+                
+                if (linearAccelerationTime2ComponentName == currentElement.components[0].name) {
+                    val linearVelocityUnitClass = "LinearVelocityMeasure${linearAccelerationDistanceComponentName}Per$linearAccelerationTime1ComponentName"
+                    val linearAccelerationUnitClass = getMeasureClassName(linearAccelerationUnit)
+                    type.addFunction(
+                            FunSpec.builder("times")
+                                    .inlineMaybe(true)
+                                    .addParameter("that", ClassName(linearAccelerationGroupPackage, linearAccelerationUnitClass))
+                                    .returns(ClassName(linearVelocityGroupPackage, linearVelocityUnitClass))
+                                    .addStatement("return $linearVelocityUnitClass(this.value * that.value)")
+                                    .build()
+                    )
+                }
+            }
+        }
+
+        //Generate angular acceleration -> velocity ( accel * time )
         //Multiply value by time and then strip the time unit off, returning the corresponding position unit
         if (currentElement.group == "acceleration.angular") {
             val angularVelocityGroup = getGroup(otherRemoteElements, "velocity.angular")
@@ -350,6 +436,36 @@ object CustomPostGenerator {
                             .addStatement("return $angularVelocityUnitClass(this.value * that.value)")
                             .build()
             )
+        }
+
+        //Generate angular acceleration -> velocity ( time * accel )
+        //Multiply value by time and then strip the time unit off, returning the corresponding position unit
+        if (currentElement.group == "time") {
+            val angularVelocityGroup = getGroup(otherRemoteElements, "velocity.angular")
+            val angularVelocityGroupPackage = getPackage(angularVelocityGroup.first())
+
+            val angularAccelerationGroup = getGroup(otherRemoteElements, "acceleration.angular")
+            val angularAccelerationGroupPackage = getPackage(angularAccelerationGroup.first())
+
+            angularAccelerationGroup.forEach {
+                angularAccelerationUnit ->
+                val angularAccelerationDistanceComponentName = angularAccelerationUnit.components[0].pluralName
+                val angularAccelerationTime1ComponentName = angularAccelerationUnit.components[1].name
+                val angularAccelerationTime2ComponentName = angularAccelerationUnit.components[2].name
+
+                if (angularAccelerationTime2ComponentName == currentElement.components[0].name) {
+                    val angularVelocityUnitClass = "AngularVelocityMeasure${angularAccelerationDistanceComponentName}Per$angularAccelerationTime1ComponentName"
+                    val angularAccelerationUnitClass = getMeasureClassName(angularAccelerationUnit)
+                    type.addFunction(
+                            FunSpec.builder("times")
+                                    .inlineMaybe(true)
+                                    .addParameter("that", ClassName(angularAccelerationGroupPackage, angularAccelerationUnitClass))
+                                    .returns(ClassName(angularVelocityGroupPackage, angularVelocityUnitClass))
+                                    .addStatement("return $angularVelocityUnitClass(this.value * that.value)")
+                                    .build()
+                    )
+                }
+            }
         }
 
         //Generate linear distance -> velocity
