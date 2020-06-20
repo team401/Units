@@ -1,4 +1,4 @@
-package org.snakeskin.compiler.units
+package org.team401.units.compiler
 
 /**
  * @author Cameron Earle

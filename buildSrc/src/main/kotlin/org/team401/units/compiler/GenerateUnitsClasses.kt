@@ -1,11 +1,9 @@
-package org.snakeskin.compiler.units
+package org.team401.units.compiler
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.io.File
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 /**
  * @author Cameron Earle
@@ -27,16 +25,16 @@ open class GenerateUnitsClasses: DefaultTask() {
         //Angular distance
         val radians = UnitComponent(UnitType.ANGULAR_DISTANCE, "Radian", "Radians", "rad", 1.0) //BASE
         val degrees = UnitComponent(UnitType.ANGULAR_DISTANCE, "Degree", "Degrees", "deg", Math.PI / 180.0)
-        val revolutions = UnitComponent(UnitType.ANGULAR_DISTANCE, "Revolution", "Revolutions", "rev", 2.0 * Math.PI)
+        val revolutions = UnitComponent(UnitType.ANGULAR_DISTANCE, "Rev", "Revs", "rev", 2.0 * Math.PI)
         val ticks12Bit = UnitComponent(UnitType.ANGULAR_DISTANCE, "Tick12Bit", "Ticks12Bit", "ticks12b", (2 * Math.PI) / 4096.0)
         val ticks13Bit = UnitComponent(UnitType.ANGULAR_DISTANCE, "Tick13Bit", "Ticks13Bit", "ticks13b", (2 * Math.PI) / 8192.0)
         val angularDistance = arrayListOf(radians, degrees, revolutions, ticks12Bit, ticks13Bit)
 
         //Time
         val seconds = UnitComponent(UnitType.TIME, "Second", "Seconds", "s", 1.0) //BASE
-        val milliseconds = UnitComponent(UnitType.TIME, "Millisecond", "Milliseconds", "ms", 0.001)
-        val minutes = UnitComponent(UnitType.TIME, "Minute", "Minutes", "min", 60.0)
-        val hundredMs = UnitComponent(UnitType.TIME, "HundredMilliseconds", "HundredMilliseconds", "100 ms", 0.1)
+        val milliseconds = UnitComponent(UnitType.TIME, "Ms", "Ms", "ms", 0.001)
+        val minutes = UnitComponent(UnitType.TIME, "Min", "Mins", "min", 60.0)
+        val hundredMs = UnitComponent(UnitType.TIME, "100Ms", "100Ms", "100 ms", 0.1)
         val time = arrayListOf(seconds, milliseconds, minutes, hundredMs)
 
         //Mass

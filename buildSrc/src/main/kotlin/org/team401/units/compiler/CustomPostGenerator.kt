@@ -1,7 +1,7 @@
-package org.snakeskin.compiler.units
+package org.team401.units.compiler
 
 import com.squareup.kotlinpoet.*
-import org.snakeskin.compiler.units.UnitClassGenerator.inlineMaybe
+import org.team401.units.compiler.UnitClassGenerator.inlineMaybe
 
 /**
  * @author Cameron Earle
@@ -21,16 +21,12 @@ object CustomPostGenerator {
         return toReturn
     }
 
-    private fun getUnitFromFirstComponent(group: List<UnitDefinition>, def: UnitDefinition): UnitDefinition {
-        return group.first { it.components.first().name == def.components.first().name }
-    }
-
     private fun getPackage(def: UnitDefinition): String {
-        return "org.snakeskin.measure.${def.group}".removeSuffix(".")
+        return "${UnitClassGenerator.PACKAGE_NAME}.${def.group}".removeSuffix(".")
     }
 
     private fun getMeasureClassName(def: UnitDefinition): String {
-        return def.group.split(".").reversed().joinToString("", transform = { it.capitalize() }) + "Measure${def.name}"
+        return "Measure${def.name}"
     }
 
     private fun getConversionToFunction(def: UnitDefinition): String {
@@ -184,7 +180,7 @@ object CustomPostGenerator {
             val radiusGroupPackage = getPackage(otherLocalElements.first())
             val angularGroup = getGroup(otherRemoteElements, "distance.angular")
             val angularGroupPackage = getPackage(angularGroup.first())
-            val angularElementClass = "AngularDistanceMeasureRadians"
+            val angularElementClass = "MeasureRadians"
             otherLocalElements.forEach { //Other local elements == radius elements
                     radiusUnit ->
                 val radiusUnitClass = getMeasureClassName(radiusUnit)
@@ -209,7 +205,7 @@ object CustomPostGenerator {
             val angularVelocityGroupPackage = getPackage(angularVelocityGroup.first())
 
             val linearMeasureTimeComponentName = currentElement.components[1].name
-            val angularVelocityUnitClass = "AngularVelocityMeasureRadiansPer$linearMeasureTimeComponentName"
+            val angularVelocityUnitClass = "MeasureRadiansPer$linearMeasureTimeComponentName"
 
             radiusMeasureGroup.forEach {
                 radiusUnit ->
@@ -236,7 +232,7 @@ object CustomPostGenerator {
 
             val linearMeasureTimeComponent1Name = currentElement.components[1].name
             val linearMeasureTimeComponent2Name = currentElement.components[2].name
-            val angularAccelerationUnitClass = "AngularAccelerationMeasureRadiansPer${linearMeasureTimeComponent1Name}Per$linearMeasureTimeComponent2Name"
+            val angularAccelerationUnitClass = "MeasureRadiansPer${linearMeasureTimeComponent1Name}Per$linearMeasureTimeComponent2Name"
 
             radiusMeasureGroup.forEach {
                     radiusUnit ->
@@ -263,8 +259,8 @@ object CustomPostGenerator {
 
             val linearVelocityDistanceComponentName = currentElement.components[0].pluralName
             val linearVelocityTimeComponentName = currentElement.components[1].pluralName
-            val linearDistanceUnitClass = "LinearDistanceMeasure$linearVelocityDistanceComponentName"
-            val timeUnitClass = "TimeMeasure$linearVelocityTimeComponentName"
+            val linearDistanceUnitClass = "Measure$linearVelocityDistanceComponentName"
+            val timeUnitClass = "Measure$linearVelocityTimeComponentName"
 
             type.addFunction(
                     FunSpec.builder("times")
@@ -290,7 +286,7 @@ object CustomPostGenerator {
                 val linearVelocityDistanceComponentName = linearVelocityUnit.components[0].pluralName
                 val linearVelocityTimeComponentName = linearVelocityUnit.components[1].pluralName
                 if (linearVelocityTimeComponentName == currentElement.components[0].pluralName) {
-                    val linearDistanceUnitClass = "LinearDistanceMeasure$linearVelocityDistanceComponentName"
+                    val linearDistanceUnitClass = "Measure$linearVelocityDistanceComponentName"
                     val linearVelocityUnitClass = getMeasureClassName(linearVelocityUnit)
                     type.addFunction(
                             FunSpec.builder("times")
@@ -315,8 +311,8 @@ object CustomPostGenerator {
 
             val angularVelocityDistanceComponentName = currentElement.components[0].pluralName
             val angularVelocityTimeComponentName = currentElement.components[1].pluralName
-            val angularDistanceUnitClass = "AngularDistanceMeasure$angularVelocityDistanceComponentName"
-            val timeUnitClass = "TimeMeasure$angularVelocityTimeComponentName"
+            val angularDistanceUnitClass = "Measure$angularVelocityDistanceComponentName"
+            val timeUnitClass = "Measure$angularVelocityTimeComponentName"
 
             type.addFunction(
                     FunSpec.builder("times")
@@ -342,7 +338,7 @@ object CustomPostGenerator {
                 val angularVelocityDistanceComponentName = angularVelocityUnit.components[0].pluralName
                 val angularVelocityTimeComponentName = angularVelocityUnit.components[1].pluralName
                 if (angularVelocityTimeComponentName == currentElement.components[0].pluralName) {
-                    val angularDistanceUnitClass = "AngularDistanceMeasure$angularVelocityDistanceComponentName"
+                    val angularDistanceUnitClass = "Measure$angularVelocityDistanceComponentName"
                     val angularVelocityUnitClass = getMeasureClassName(angularVelocityUnit)
                     type.addFunction(
                             FunSpec.builder("times")
@@ -369,8 +365,8 @@ object CustomPostGenerator {
             val linearAccelerationTime1ComponentName = currentElement.components[1].name
             val linearAccelerationTime2ComponentName = currentElement.components[2].pluralName
 
-            val linearVelocityUnitClass = "LinearVelocityMeasure${linearAccelerationDistanceComponentName}Per$linearAccelerationTime1ComponentName"
-            val timeUnitClass = "TimeMeasure$linearAccelerationTime2ComponentName"
+            val linearVelocityUnitClass = "Measure${linearAccelerationDistanceComponentName}Per$linearAccelerationTime1ComponentName"
+            val timeUnitClass = "Measure$linearAccelerationTime2ComponentName"
 
             type.addFunction(
                     FunSpec.builder("times")
@@ -398,7 +394,7 @@ object CustomPostGenerator {
                 val linearAccelerationTime2ComponentName = linearAccelerationUnit.components[2].name
                 
                 if (linearAccelerationTime2ComponentName == currentElement.components[0].name) {
-                    val linearVelocityUnitClass = "LinearVelocityMeasure${linearAccelerationDistanceComponentName}Per$linearAccelerationTime1ComponentName"
+                    val linearVelocityUnitClass = "Measure${linearAccelerationDistanceComponentName}Per$linearAccelerationTime1ComponentName"
                     val linearAccelerationUnitClass = getMeasureClassName(linearAccelerationUnit)
                     type.addFunction(
                             FunSpec.builder("times")
@@ -425,8 +421,8 @@ object CustomPostGenerator {
             val angularAccelerationTime1ComponentName = currentElement.components[1].name
             val angularAccelerationTime2ComponentName = currentElement.components[2].pluralName
 
-            val angularVelocityUnitClass = "AngularVelocityMeasure${angularAccelerationDistanceComponentName}Per$angularAccelerationTime1ComponentName"
-            val timeUnitClass = "TimeMeasure$angularAccelerationTime2ComponentName"
+            val angularVelocityUnitClass = "Measure${angularAccelerationDistanceComponentName}Per$angularAccelerationTime1ComponentName"
+            val timeUnitClass = "Measure$angularAccelerationTime2ComponentName"
 
             type.addFunction(
                     FunSpec.builder("times")
@@ -454,7 +450,7 @@ object CustomPostGenerator {
                 val angularAccelerationTime2ComponentName = angularAccelerationUnit.components[2].name
 
                 if (angularAccelerationTime2ComponentName == currentElement.components[0].name) {
-                    val angularVelocityUnitClass = "AngularVelocityMeasure${angularAccelerationDistanceComponentName}Per$angularAccelerationTime1ComponentName"
+                    val angularVelocityUnitClass = "Measure${angularAccelerationDistanceComponentName}Per$angularAccelerationTime1ComponentName"
                     val angularAccelerationUnitClass = getMeasureClassName(angularAccelerationUnit)
                     type.addFunction(
                             FunSpec.builder("times")
@@ -482,7 +478,7 @@ object CustomPostGenerator {
                 timeUnit ->
                 val timeComponentName = timeUnit.components[0].name
                 val timeUnitClass = getMeasureClassName(timeUnit)
-                val linearVelocityUnitClass = "LinearVelocityMeasure${linearDistanceComponentName}Per$timeComponentName"
+                val linearVelocityUnitClass = "Measure${linearDistanceComponentName}Per$timeComponentName"
                 type.addFunction(
                         FunSpec.builder("div")
                                 .inlineMaybe(true)
@@ -508,7 +504,7 @@ object CustomPostGenerator {
                 timeUnit ->
                 val timeComponentName = timeUnit.components[0].name
                 val timeUnitClass = getMeasureClassName(timeUnit)
-                val angularVelocityUnitClass = "AngularVelocityMeasure${angularDistanceComponentName}Per$timeComponentName"
+                val angularVelocityUnitClass = "Measure${angularDistanceComponentName}Per$timeComponentName"
                 type.addFunction(
                         FunSpec.builder("div")
                                 .inlineMaybe(true)
@@ -535,7 +531,7 @@ object CustomPostGenerator {
                 timeUnit ->
                 val timeComponentName = timeUnit.components[0].name
                 val timeUnitClass = getMeasureClassName(timeUnit)
-                val linearAccelerationUnitClass = "LinearAccelerationMeasure${linearVelocityDistanceComponentName}Per${linearVelocityTimeComponentName}Per${timeComponentName}"
+                val linearAccelerationUnitClass = "Measure${linearVelocityDistanceComponentName}Per${linearVelocityTimeComponentName}Per${timeComponentName}"
                 type.addFunction(
                         FunSpec.builder("div")
                                 .inlineMaybe(true)
@@ -562,7 +558,7 @@ object CustomPostGenerator {
                 timeUnit ->
                 val timeComponentName = timeUnit.components[0].name
                 val timeUnitClass = getMeasureClassName(timeUnit)
-                val angularAccelerationUnitClass = "AngularAccelerationMeasure${angularVelocityDistanceComponentName}Per${angularVelocityTimeComponentName}Per${timeComponentName}"
+                val angularAccelerationUnitClass = "Measure${angularVelocityDistanceComponentName}Per${angularVelocityTimeComponentName}Per${timeComponentName}"
                 type.addFunction(
                         FunSpec.builder("div")
                                 .inlineMaybe(true)
