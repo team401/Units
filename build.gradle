@@ -5,7 +5,7 @@ plugins {
     id 'maven-publish'
     id 'org.jetbrains.kotlin.jvm' version '1.3.72'
     id "com.palantir.git-version" version "0.12.3"
-    //id "com.jfrog.bintray" version "1.8.4"
+    id "com.jfrog.bintray" version "1.8.5"
 }
 
 group 'org.team401'
@@ -36,7 +36,6 @@ task genUnitsClasses(type: GenerateUnitsClasses)
 
 compileKotlin.dependsOn genUnitsClasses
 
-/*
 publishing {
     publications {
         Units(MavenPublication) {
@@ -48,18 +47,16 @@ publishing {
     }
 }
 
-
-
 bintray {
     user = project.hasProperty('user') ? project.property('user') : System.getenv("BINTRAY_USER") != null ? System.getenv("BINTRAY_USER") : ""
     key = project.hasProperty('key') ? project.property('key'): System.getenv("BINTRAY_KEY") != null ? System.getenv("BINTRAY_KEY") : ""
     publications = ['Units']
     pkg {
-        repo = "SnakeSkin"
-        name = "SnakeSkin-Units"
+        repo = "Public"
+        name = "Units"
         userOrg = "team401"
         licenses = ["GPL-3.0"]
-        vcsUrl = "https://github.com/team401/snakeskin-units"
+        vcsUrl = "https://github.com/team401/Units"
         version {
             name = this.version
         }
@@ -67,7 +64,6 @@ bintray {
 }
 
 
- */
 wrapper {
     gradleVersion = '6.5'
 }
