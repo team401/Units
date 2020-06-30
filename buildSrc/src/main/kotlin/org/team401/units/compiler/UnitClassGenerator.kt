@@ -76,6 +76,15 @@ object UnitClassGenerator {
                         .build()
         )
 
+        //Add unaryMinus
+        typeBuilder.addFunction(
+                FunSpec.builder("unaryMinus")
+                        .inlineMaybe(true)
+                        .returns(ClassName(packageName, finalClassName))
+                        .addStatement("return $finalClassName(this.value * -1.0)")
+                        .build()
+        )
+
         if (unitDefinition.group != "") {
             //Add unitless arithmetic (this = unit, that = unitless)
             typeBuilder.addFunction(
